@@ -9,7 +9,7 @@ import java.util.Scanner;
 /**
  * @author Fuqing Wang, Hang Xu
  */
-public class BlackJack {
+public class TriantaEna {
     /** player mode, currently, support two different modes */
     private static final int SINGLE = 1;
     private static final int DOUBLE = 2;
