@@ -11,15 +11,18 @@ public class CardDeck {
         this.deck = new ArrayList<>();
     }
 
-    public void prepareDeck() {
+    // prepare n decks of cards
+    public void prepareDecks(int n) {
         // In a normal poker game, there are 4 suits
         this.deck.clear();
         int suitSize = Suit.values().length;
         int rankSize = Card.getRankSize();
-        for (int suit = 0; suit < suitSize; suit++) {
-            // ToDo: Rank should be further abstracted, currently, using a static method in Card class to return the size
-            for (int rank = 0; rank < rankSize; rank++) {
-                this.deck.add(new Card(Suit.values()[suit], rank));
+        for(int j = 0; j < n; j++){
+            for (int suit = 0; suit < suitSize; suit++) {
+                // ToDo: Rank should be further abstracted, currently, using a static method in Card class to return the size
+                for (int rank = 0; rank < rankSize; rank++) {
+                    this.deck.add(new Card(Suit.values()[suit], rank));
+                }
             }
         }
     }
