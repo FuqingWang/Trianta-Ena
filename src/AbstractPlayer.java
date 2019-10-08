@@ -1,10 +1,9 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Fuqing Wang, Hang Xu
  */
-public abstract class AbstractPlayer {
+public abstract class AbstractPlayer implements Comparable<AbstractPlayer> {
     /** protected so that only accessible within the application */
     protected int balance;
     private String name;
@@ -13,12 +12,29 @@ public abstract class AbstractPlayer {
     private boolean isDealer;
     private static final int TWENTY_ONE = 21;
     private static final String ACE = "A";
+    private int bet;
 
     public AbstractPlayer(String name, int balance, boolean isDealer) {
         this.name = name;
         this.hand = new ArrayList<>();
         this.hands = new ArrayList<>();
         this.balance = balance;
+        this.isDealer = isDealer;
+    }
+
+    public int getBet(){
+        return this.bet;
+    }
+
+    public void setBet(int bet){
+        this.bet = bet;
+    }
+
+    public boolean getIsDealer(){
+        return this.isDealer;
+    }
+
+    public void setIsDealer(boolean isDealer){
         this.isDealer = isDealer;
     }
 
@@ -147,5 +163,10 @@ public abstract class AbstractPlayer {
             res.append(sb.substring(0, sb.length() - 2)).append("]").append("]");
         }
         return res.toString();
+    }
+
+    @Override
+    public int compareTo(AbstractPlayer player1) {
+        return Integer.compare(player1.getBalance(), this.getBalance());
     }
 }

@@ -24,6 +24,21 @@ public class CardDeck {
         }
     }
 
+    public void prepare2Deck() {
+        // In a normal poker game, there are 4 suits
+        this.deck.clear();
+        int suitSize = Suit.values().length;
+        int rankSize = Card.getRankSize();
+        for(int j = 0; j < 2; j++){
+            for (int suit = 0; suit < suitSize; suit++) {
+                // ToDo: Rank should be further abstracted, currently, using a static method in Card class to return the size
+                for (int rank = 0; rank < rankSize; rank++) {
+                    this.deck.add(new Card(Suit.values()[suit], rank));
+                }
+            }
+        }
+    }
+
     public Card drawCard() {
         int random = (int) Math.floor(Math.random() * this.deck.size());
         Card card = this.deck.get(random);
