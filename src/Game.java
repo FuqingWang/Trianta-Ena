@@ -39,7 +39,7 @@ public class Game {
     }
 
     /** Give the dealer first two cards to the Hand */
-    public void initDealer(Dealer dealer){
+    public void initDealer(Player dealer){
         dealer.cleanHands();
         dealer.addCard(deck.drawCard());
         dealer.addCard(deck.drawCard());
@@ -47,7 +47,7 @@ public class Game {
     }
 
     /** Blackjack dummy dealer AI */
-    public void blackJackDealersTurn_AI(Player player, Dealer dealer) {
+    public void blackJackDealersTurn_AI(Player player, Player dealer) {
         // dealer's turn
         int playerMaxPoints = 0;
         for (int index = 0; index < player.getHands().size(); index++) {
@@ -70,7 +70,7 @@ public class Game {
     }
 
     /** Blackjack - game logic for dealer's turn */
-    public void blackJackDealersTurn_Human(Player player, Dealer dealer) {
+    public void blackJackDealersTurn_Human(Player player, Player dealer) {
         // dealer's turn
         int playerMaxPoints = 0;
         for (int index = 0; index < player.getHands().size(); index++) {
@@ -147,7 +147,7 @@ public class Game {
     }
 
     /** Blackjack - compare player's each hand of cards with dealer's cards, and add/subtract balance accordingly*/
-    public void blackJackCompare(Player player, Dealer dealer, int currBet) {
+    public void blackJackCompare(Player player, Player dealer, int currBet) {
         for (int index = 0; index < player.getHands().size(); index++) {
             System.out.println("Player's cards are: " + player.printHand(index) + ", total points "
                     + player.calculateRank(index) + ".");
@@ -198,13 +198,13 @@ public class Game {
             System.out.println("Double Player Mode");
         }
         Player player = new Player("Player", 100);
-        Dealer dealer = new Dealer("Dealer", Integer.MAX_VALUE);
+        Player dealer = new Player("Dealer", Integer.MAX_VALUE);
 
         boolean play = true;
 
         while (player.getBalance() >= 0 && play) {
             // set budget, shuffle card, etc
-            deck.prepareDeck();
+            deck.prepareDecks(1);
             System.out.println("Your current balance is: " + player.getBalance() +
                     ". Please choose a bet amount for this round: (for example, enter 5)");
             int betAmount = scan.nextInt();
@@ -297,18 +297,7 @@ public class Game {
         return player;
     }
 
-    private void rotateBanker(){
-
-    }
-
-    public void PlayTriantaMode(int mode){
-        // only two mode supported for now. Could comment this out if we need to support more.
-        if (mode == 1) {
-            System.out.println("Single Player Mode");
-        } else {
-            System.out.println("Double Player Mode");
-        }
-
+    public void PlayTriantaMode(){
         // while ...
         boolean play = true;
         while(play){
@@ -319,57 +308,54 @@ public class Game {
             List<Player> players = new ArrayList<>();
 
             for(int i = 0; i < numPlayer; i++){
-                String name = "Player" + (i+1);
+                String name = "Player " + (i+1);
+//                System.out.println("Enter the name for player (default name: " + name + ")");
+//                String newName = scan.nextLine();
+//                name = name == "" ? newName : name;
                 Player newPlayer = new Player(name, 100);
                 newPlayer.setIsDealer(false);
                 players.add(newPlayer);
-//            System.out.println("Enter the name for players");
             }
-
-            // init dealer
-            Player dealer = new Player("Dealer", 300);
-            dealer.setIsDealer(true);
-
-            deck.prepare2Deck();
+            deck.prepareDecks(2);
 
             boolean continuee = true;
             while(continuee){
-                // choose dealer and players (if versus mode)
-                if(mode == 2){
-                    rotateTriantaPlayers(players);
+                // choose dealer and players
+                rotateTriantaPlayers(players);
 
-                }else{
-                    dealer.cleanHands();
-                }
+                // init dealer
+                Player banker = triantaGetDealer(players);
+                banker.cleanHands();
 
                 // dealer draws a card
                 Card newCard = deck.drawCard();
-                dealer.addCard(newCard);
-                System.out.println("Dealer shows " + newCard.toString());
+                banker.addCard(newCard);
+                System.out.println(banker.getName() + "(banker) shows " + newCard.toString());
 
                 // player each draws a card(without bet)
                 List<Player> newPlayers = new ArrayList<>();
                 for(int i = 0; i < numPlayer; i++){
                     Player player = players.get(i);
-                    newCard = deck.drawCard();
-                    player.cleanHands();
-                    player.addCard(newCard);
-                    System.out.println(player.getName() + " draws " + newCard.toString());
-                    System.out.println("Do you want to 1.fold 2.keep playing");
-                    int choice = scan.nextInt();
-                    if (choice == 2) {
-                        newPlayers.add(player);
+                    if(!player.getIsDealer()){
+                        player.cleanHands();
+                        newCard = deck.drawCard();
+                        player.cleanHands();
+                        player.addCard(newCard);
+                        System.out.println(player.getName() + " draws " + newCard.toString());
+                        System.out.println("Do you want to 1.fold 2.keep playing");
+                        int choice = scan.nextInt();
+                        if (choice == 2) {
+                            newPlayers.add(player);
+                        }
                     }
                 }
 
                 // player choose to play(put in bet)
                 for(int i = 0; i < newPlayers.size(); i++){
                     Player player = newPlayers.get(i);
-
                     List<List<Card>> newHands = new ArrayList<>();
                     newHands.add(player.getHand());
                     player.setHands(newHands);
-
                     System.out.println(player.getName() + " Select a bet amount");
                     int bet = scan.nextInt();
                     //@todo bet must not exceed dealer's balance
@@ -390,42 +376,36 @@ public class Game {
                     }
                 }
 
-                // dealer's turn
+                // banker's turn
                 List<List<Card>> newHands = new ArrayList<>();
-                newHands.add(dealer.getHand());
-                dealer.setHands(newHands);
-
-                if(mode == 1){
-                    while(dealer.calculateRank(0) < 27){
-                        newCard = deck.drawCard();
-                        System.out.println("Dealer draws a new card " + newCard);
-                        dealer.addCard(newCard);
-                    }
-                }else{
-                    while(dealer.calculateRank(0) < 31){
-                        System.out.println(dealer.getName() + "(dealer) now has " + dealer.getHand());
+                newHands.add(banker.getHand());
+                banker.setHands(newHands);
+                if(newPlayers.size() > 0){
+                    while(banker.calculateRank(0) < 31){
+                        System.out.println(banker.getName() + "(banker) now has " + banker.getHand());
                         System.out.println("Do you want to 1.hit 2.stand");
                         int choice = scan.nextInt();
                         if(choice == 1){
                             newCard = deck.drawCard();
-                            System.out.println("Dealer draws a new card " + newCard);
-                            dealer.addCard(newCard);
+                            System.out.println("Banker draws a new card " + newCard);
+                            banker.addCard(newCard);
                         }else{
                             break;
                         }
                     }
+                    // check win
+                    System.out.println();
+                    for(int i = 0; i < newPlayers.size(); i++){
+                        Player player = newPlayers.get(i);
+                        triantaEnaCompare(player, banker);
+                    }
+                    System.out.println();
+                }else{
+                    System.out.println("All players have chosen to fold. ");
                 }
-
-                // check win
-                System.out.println();
-                for(int i = 0; i < newPlayers.size(); i++){
-                    Player player = newPlayers.get(i);
-                    triantaEnaCompare(player, dealer);
-                }
-                System.out.println();
 
                 // summary
-                triantaEnaSummary(newPlayers, dealer);
+                triantaEnaSummary(players);
 
                 System.out.println("Do you want to start a new round? 1.Yes 2.No");
                 int choice = scan.nextInt();
@@ -441,7 +421,6 @@ public class Game {
                 System.out.println("Bye Bye!");
             }
         }
-
     }
 
 
@@ -450,9 +429,9 @@ public class Game {
         int playerTotal = player.calculateRank(0);
         int dealerTotal = dealer.calculateRank(0);
 
-        System.out.println("Player's cards are: " + player.printHands() + ", total points "
+        System.out.println(player.getName() + "'s cards are: " + player.printHands() + ", total points "
                 + playerTotal + ".");
-        System.out.println("Dealer's cards are: " + dealer.printHands() +
+        System.out.println(dealer.getName() + "'s(Banker) cards are: " + dealer.printHands() +
                 ", total points " + dealerTotal + ".");
 
         // Find the winner!
@@ -460,7 +439,7 @@ public class Game {
         if (playerTotal <= THIRTY_ONE && dealerTotal <= THIRTY_ONE) {
             if (playerTotal < dealerTotal) {
                 dealer.addBalance(player.getBet());
-                System.out.println("Dealer wins!");
+                System.out.println("Banker wins!");
             } else if (playerTotal > dealerTotal) {
                 dealer.subtractBalance(player.getBet());
                 player.addBalance(player.getBet() * 2);
@@ -468,18 +447,18 @@ public class Game {
             } else {
                 // check natural blackjack
                 if (playerTotal == THIRTY_ONE) {
-                    if (player.getHand().size() == 2 && dealer.getHand().size() > 2) {
+                    if (player.getHand().size() == 3 && dealer.getHand().size() > 3) {
                         dealer.subtractBalance(player.getBet());
                         player.addBalance(player.getBet() * 2);
                         System.out.println("Player wins");
                     } else {
                         dealer.addBalance(player.getBet());
-                        System.out.println("Dealer wins");
+                        System.out.println("Banker wins");
                     }
                 } else {
                     // if draw, the dealer wins
                     dealer.addBalance(player.getBet());
-                    System.out.println("Dealer wins");
+                    System.out.println("Banker wins");
                 }
             }
         } else if (playerTotal <= THIRTY_ONE) {
@@ -488,16 +467,16 @@ public class Game {
             System.out.println("Player wins");
         } else {
             dealer.addBalance(player.getBet());
-            System.out.println("Dealer wins");
+            System.out.println("Banker wins");
         }
     }
 
-    private void triantaEnaSummary(List<Player> players, Player dealer){
+    private void triantaEnaSummary(List<Player> players){
+        System.out.println(players.size());
         for(int i = 0; i < players.size(); i++){
             Player player = players.get(i);
             System.out.println(player.getName() + "'s current balance is " + player.getBalance());
         }
-        System.out.println(dealer.getName() + "'s current balance is " + dealer.getBalance());
     }
 
     public void rotateTriantaPlayers(List<Player> players){
@@ -505,17 +484,28 @@ public class Game {
         boolean hasDealer = false;
         for(int i = 0; i < players.size(); i++){
             Player player = players.get(i);
-            System.out.println(player.getName() + "Do you want to be the dealer? 1.Yes 2.No");
+            System.out.println(player.getName() + ", do you want to be the dealer? 1.Yes 2.No");
             int choice = scan.nextInt();
             if(choice == 1){
                 player.setIsDealer(true);
+                hasDealer = true;
                 break;
             }
         }
+        // if no one wants to be the dealder, randomly select player and set him as dealer
         if(!hasDealer){
             int d = (int) Math.floor(Math.random() * players.size());
             players.get(d).setIsDealer(true);
-            System.out.println("No one wants to be the dealer, " + players.get(d).getName() + " is randomly chosen as dealer.");
+            System.out.println("No one wants to be the banker, " + players.get(d).getName() + " is randomly chosen as banker.");
         }
+    }
+
+    public Player triantaGetDealer(List<Player> players){
+        for(int i = 0; i < players.size(); i++){
+            if(players.get(i).getIsDealer()){
+                return players.get(i);
+            }
+        }
+        return null;
     }
 }
