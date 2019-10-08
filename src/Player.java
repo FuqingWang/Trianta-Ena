@@ -5,7 +5,7 @@ import java.util.List;
  */
 public class Player extends AbstractPlayer {
 
-    /** each element of this arraylist is a winning multiplier for each hand
+    /** each element of this Arraylist is a winning multiplier for each hand
      If the game ties, the element will be 1 (gives back the bet money). If player wins, the element will be 2 for normal and 4 for double up, etc. */
     private List<Integer> winMultiplier;
 
