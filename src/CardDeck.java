@@ -11,7 +11,7 @@ public class CardDeck {
         this.deck = new ArrayList<>();
     }
 
-    // prepare n decks of cards
+    /** prepare n decks of card */
     public void prepareDecks(int n) {
         // In a normal poker game, there are 4 suits
         this.deck.clear();
@@ -27,6 +27,7 @@ public class CardDeck {
         }
     }
 
+    /** draw a random card from deck, and remove it from current deck */
     public Card drawCard() {
         int random = (int) Math.floor(Math.random() * this.deck.size());
         Card card = this.deck.get(random);
@@ -34,15 +35,18 @@ public class CardDeck {
         return card;
     }
 
+    /** return current deck */
     public List<Card> getDeck() {
         return this.deck;
     }
 
+    /** return current deck size */
     public int size() {
         return this.deck.size();
     }
 
 
+    /** print current deck */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

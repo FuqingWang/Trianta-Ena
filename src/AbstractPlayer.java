@@ -165,6 +165,7 @@ public abstract class AbstractPlayer implements Comparable<AbstractPlayer> {
         return res.toString();
     }
 
+    /** sort players based on balance */
     @Override
     public int compareTo(AbstractPlayer player1) {
         return Integer.compare(player1.getBalance(), this.getBalance());
