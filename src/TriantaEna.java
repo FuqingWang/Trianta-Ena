@@ -12,25 +12,32 @@ public class TriantaEna extends Game {
     /** init a new deck of Cards */
     private CardDeck deck = new CardDeck();
     private Scanner scan = new Scanner(System.in);
+    private int initialBalance = 100;
 
     public TriantaEna() {
         super(WINNING_COND);
     }
 
     public void playTriantaMode() {
-        // while ...
         boolean play = true;
+        boolean firstRun = true;
+        Card newCard;
+        List<Player> newPlayers;
+
         while(play){
             // init number of players
-            System.out.println("Enter the number of players");
+            System.out.println("Enter the number of players (enter at least 2)");
             int numPlayer = scan.nextInt();
-
+            while(numPlayer < 2) {
+                System.out.println("The game would require at least 2 players to play! Please enter a number greater than 2");
+                numPlayer = scan.nextInt();
+            }
             List<Player> players = new ArrayList<>();
 
             // Create all players and add them in a list
             for(int i = 0; i < numPlayer; i++){
                 String name = "Player " + (i+1);
-                Player newPlayer = new Player(name, 100);
+                Player newPlayer = new Player(name, initialBalance);
                 newPlayer.setIsDealer(false);
                 players.add(newPlayer);
             }
@@ -39,20 +46,24 @@ public class TriantaEna extends Game {
 
             boolean ongoing = true;
             while (ongoing) {
-                // Choose dealer and players based on personal choices or randomly select.
+                // 1. Choose dealer and players based on personal choices or randomly select.
                 rotateTriantaPlayers(players);
 
                 // Init dealer
                 Player banker = triantaGetDealer(players);
                 banker.cleanHands();
+                if (firstRun) {
+                    banker.setBalance(3*initialBalance);
+                    firstRun = false;
+                }
 
                 // dealer draws a card
-                Card newCard = deck.drawCard();
+                newCard = deck.drawCard();
                 banker.addCard(newCard);
                 System.out.println(banker.getName() + "(banker) shows " + newCard.toString());
 
-                // player each draws a card (without bet)
-                List<Player> newPlayers = new ArrayList<>();
+                // 2. Player each draws a card and choose to fold or keep playing (without bet)
+                newPlayers = new ArrayList<>();
                 for (int i = 0; i < numPlayer; i++) {
                     Player player = players.get(i);
                     if (!player.getIsDealer()) {
@@ -68,8 +79,7 @@ public class TriantaEna extends Game {
                         }
                     }
                 }
-
-                // Player choose to play (put in bet)
+                // 3. Player choose to play (put in bet)
                 for (int i = 0; i < newPlayers.size(); i++) {
                     Player player = newPlayers.get(i);
                     List<List<Card>> newHands = new ArrayList<>();
@@ -78,11 +88,15 @@ public class TriantaEna extends Game {
                     System.out.println(player.getName() + " Select a bet amount");
                     int bet = scan.nextInt();
 
-                    //@todo bet must not exceed dealer's balance
+                    // we make bet not exceed half of banker's current balance
+                    while(bet > banker.getBalance()/2){
+                        System.out.println("The banker does not have sufficient balance, please enter a smaller amount");
+                        bet = scan.nextInt();
+                    }
                     player.subtractBalance(bet);
                     player.setBet(bet);
 
-                    while (player.calculateRank(0) < WINNING_COND) {
+                    while (player.calculateRank() < WINNING_COND) {
                         System.out.println(player.getName() + " now has " + player.getHand());
                         System.out.println("Do you want to 1 (hit) or 2 (stand)");
                         int choice = scan.nextInt();
@@ -96,12 +110,12 @@ public class TriantaEna extends Game {
                     }
                 }
 
-                // Banker's turn
+                // 4. Banker's turn
                 List<List<Card>> newHands = new ArrayList<>();
                 newHands.add(banker.getHand());
                 banker.setHands(newHands);
                 if (newPlayers.size() > 0) {
-                    while (banker.calculateRank(0) < WINNING_COND) {
+                    while (banker.calculateRank() < WINNING_COND) {
                         System.out.println(banker.getName() + "(banker) now has " + banker.getHand());
                         System.out.println("Do you want to 1.hit 2.stand");
                         int choice = scan.nextInt();
@@ -109,22 +123,20 @@ public class TriantaEna extends Game {
                             newCard = deck.drawCard();
                             System.out.println("Banker draws a new card " + newCard);
                             banker.addCard(newCard);
-                        }else{
+                        } else {
                             break;
                         }
                     }
-                    // check win
-                    System.out.println();
+                    // 5. check win
                     for (int i = 0; i < newPlayers.size(); i++) {
                         Player player = newPlayers.get(i);
                         triantaEnaCompare(player, banker);
                     }
-                    System.out.println();
                 } else {
                     System.out.println("All players have chosen to fold this round.");
                 }
 
-                // summary
+                // 6. Game summary
                 triantaEnaSummary(players);
 
                 System.out.println("Do you want to start a new round? 1 (Yes) or 2 (No)");
@@ -143,12 +155,11 @@ public class TriantaEna extends Game {
         }
     }
 
-
     /** compare hands between players in the game */
     private void triantaEnaCompare(Player player, Player dealer) {
 
-        int playerTotal = player.calculateRank(0);
-        int dealerTotal = dealer.calculateRank(0);
+        int playerTotal = player.calculateRank();
+        int dealerTotal = dealer.calculateRank();
 
         System.out.println(player.getName() + "'s cards are: " + player.printHands() + ", total points "
                 + playerTotal + ".");
@@ -195,8 +206,7 @@ public class TriantaEna extends Game {
 
     /** display the summary of current game status */
     private void triantaEnaSummary(List<Player> players) {
-        System.out.println(players.size());
-        for(int i = 0; i < players.size(); i++) {
+        for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
             System.out.println(player.getName() + "'s current balance is " + player.getBalance());
         }
@@ -209,12 +219,14 @@ public class TriantaEna extends Game {
         boolean hasDealer = false;
         for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
-            System.out.println(player.getName() + ", do you want to be the dealer?  1 (Yes) or 2 (No)");
+            System.out.println(player.getName() + ", do you want to be the banker?  1 (Yes) or 2 (No)");
             int choice = scan.nextInt();
-            if(choice == 1){
+            if (choice == 1) {
                 player.setIsDealer(true);
                 hasDealer = true;
                 break;
+            } else {
+                player.setIsDealer(false);
             }
         }
         // if no one wants to be the dealer, randomly select player and set him as dealer

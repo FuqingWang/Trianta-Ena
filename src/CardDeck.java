@@ -45,7 +45,6 @@ public class CardDeck {
         return this.deck.size();
     }
 
-
     /** print current deck */
     @Override
     public String toString() {
@@ -56,6 +55,5 @@ public class CardDeck {
 
         }
         return sb.substring(0, sb.length() - 1)+ "]";
-
     }
 }

@@ -66,4 +66,3 @@ Author: Fuqing Wang (fuqing04@bu.edu), Hang Xu (xuh@bu.edu)
   * In our design, we abstract the common characteristics about the BlackJack game. With that being said, we can use all the existing classes.
 * Would ‘applications’ that use your class to play the game of Blackjack be impacted if you made changes to your implementation?
   * No, because of encapsulation. The fields of the classes are private and only contains necessary public classes that allows applications to do some GET. That is saying, the application that use our classes the game would affect the state and implementation of the entire game.
-

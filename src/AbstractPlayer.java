@@ -11,6 +11,7 @@ public abstract class AbstractPlayer implements Comparable<AbstractPlayer> {
     private List<List<Card>> hands;
     private boolean isDealer;
     private static final int TWENTY_ONE = 21;
+    private static final int ThIRTY_ONE = 31;
     private static final String ACE = "A";
     private int bet;
 
@@ -22,18 +23,22 @@ public abstract class AbstractPlayer implements Comparable<AbstractPlayer> {
         this.isDealer = isDealer;
     }
 
+    /** return player's current bet */
     public int getBet(){
         return this.bet;
     }
 
+    /** set player's bet */
     public void setBet(int bet){
         this.bet = bet;
     }
 
+    /** return if the player is a dealer */
     public boolean getIsDealer(){
         return this.isDealer;
     }
 
+    /** set player as a dealer */
     public void setIsDealer(boolean isDealer){
         this.isDealer = isDealer;
     }
@@ -98,6 +103,32 @@ public abstract class AbstractPlayer implements Comparable<AbstractPlayer> {
     public void addCard(Card card) {
         this.hand.add(card);
     };
+
+    /** Compute the total value of a Hand */
+    public int calculateRank() {
+        int value = 0;
+        // count how many "Ace" in the hand that we have used as a value of 11
+        boolean count = false;
+        List<Card> hand = this.hand;
+        for (int i = 0; i < hand.size(); i++) {
+            Card card = hand.get(i);
+            value += card.getRank();
+            // Special case: since "Ace" could have value 11 or 1
+            // Here we treat "Ace" as 11 if the total value is less than 21
+            // Therefore, we add another 10 (the 1 has been added above) and increase the count counter
+            if (card.getFace().equals(ACE)) {
+                value += 10;
+                count = true;
+            }
+            // When the total value is larger than 21 and we have used "Ace" as 11 not 1, we need to treat it as 1
+            // Therefore, subtract 10 from the total value and decrease the count counter
+            while (value > ThIRTY_ONE && count) {
+                value -= 10;
+                count = false;
+            }
+        }
+        return value;
+    }
 
     /** Compute the total value of a Hand */
     public int calculateRank(int index) {
